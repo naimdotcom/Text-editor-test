@@ -20,6 +20,7 @@ import Image from "@tiptap/extension-image";
 
 import { ImageIcon } from "lucide-react";
 import TiptapHeaderButton from "./TiptapHeaderButton";
+import { uploadBlog } from "../utils/upload";
 
 const Tiptap = ({ setEditor }) => {
   const editor = useEditor({
@@ -45,23 +46,12 @@ const Tiptap = ({ setEditor }) => {
     ],
     content: `<h1 class="text-2xl font-bold">Welcome</h1><p>Start editing...</p>`,
   });
-
+  const imageFilesRef = useRef([]);
   const fileInputRef = useRef(null);
 
   const handleOpenFileDialog = () => {
     fileInputRef.current?.click();
   };
-
-  const handleFileChange = useCallback(
-    (event) => {
-      const file = event.target.files?.[0];
-      if (file && file.type.startsWith("image/")) {
-        const imageUrl = URL.createObjectURL(file);
-        editor.chain().focus().setImage({ src: imageUrl }).run();
-      }
-    },
-    [editor]
-  );
 
   const addImage = useCallback(() => {
     const url = window.prompt("Image URL");
@@ -70,6 +60,17 @@ const Tiptap = ({ setEditor }) => {
     }
   }, [editor]);
 
+  const handleFileChange = useCallback(
+    (event) => {
+      const file = event.target.files?.[0];
+      if (file && file.type.startsWith("image/")) {
+        const imageUrl = URL.createObjectURL(file);
+        imageFilesRef.current.push({ file, preview: imageUrl }); // Save file with preview URL
+        editor.chain().focus().setImage({ src: imageUrl }).run();
+      }
+    },
+    [editor]
+  );
   if (!editor) return null;
 
   return (
@@ -184,7 +185,15 @@ const Tiptap = ({ setEditor }) => {
 
       {/* upload  */}
       <div>
-        <button className="px-2 py-1 rounded-md border w-full mt-3 border-zinc-300 bg-white hover:bg-zinc-100 transitions">
+        <button
+          onClick={async () => {
+            await uploadBlog({
+              editor,
+              imageFiles: imageFilesRef.current, // Pass stored images
+            });
+          }}
+          className="px-2 py-1 rounded-md border w-full mt-3 border-zinc-300 bg-white hover:bg-zinc-100 transitions"
+        >
           upload
         </button>
       </div>
