@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+.tiptap h1 {
+  @apply text-3xl font-normal;
+}
+
+.tiptap h2 {
+  @apply text-2xl font-normal;
+}
+
+.tiptap h3 {
+  @apply text-xl font-normal;
+}
+
+.tiptap h4 {
+  @apply text-lg font-normal;
+}
+
+.tiptap ul li {
+  @apply list-disc;
+}
+
+.tiptap ol li {
+  @apply list-decimal;
+}
+
+.tiptap img {
+  max-width: 80%;
+  width: 100%;
+  height: auto;
+  margin: 0 auto;
+  display: block;
+}
+
+.ProseMirror:active .ProseMirror-focused {
+  outline: none;
+  box-shadow: none;
+  border: none;
+}
+.ProseMirror-focused {
+  outline: none;
+  box-shadow: none;
+  border: none;
+}
