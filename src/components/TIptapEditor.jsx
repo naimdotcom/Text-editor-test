@@ -22,7 +22,7 @@ import { ImageIcon } from "lucide-react";
 import TiptapHeaderButton from "./TiptapHeaderButton";
 import { uploadBlog } from "../utils/upload";
 
-const Tiptap = ({ setEditor }) => {
+const Tiptap = () => {
   const editor = useEditor({
     extensions: [
       Document,

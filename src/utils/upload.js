@@ -1,20 +1,12 @@
-import { Cloudinary } from "@cloudinary/url-gen";
-import { AdvancedImage } from "@cloudinary/react";
-
 const uploadImageToCloudinary = async (file) => {
   try {
-    const cld = new Cloudinary({
-      cloud: {
-        cloudName: "your_cloud_name", // Replace with your cloud name
-      },
-    });
-
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("upload_preset", import.meta.env.VITE_UPLOAD_PRESET); // ✅ from Cloudinary
-    formData.append("folder", "blog-images"); // optional
+    // todo: fetch Url from backend
 
-    return;
+    console.log("uploaded Images:" + file.preview);
+
+    return "https://your-cloudinary-url.com/fake-image.jpg";
   } catch (error) {
     console.log("🚨 Error uploading image to Cloudinary:", error);
   }
@@ -27,35 +19,47 @@ const extractImageUrlsFromHTML = (html) => {
   while ((match = regex.exec(html)) !== null) {
     urls.push(match[1]);
   }
-
   return urls;
 };
 
-const replaceImageUrlsInHTML = (html, localUrls, uploadedUrls) => {
+const replaceImageUrlsInHTMLWithMap = (html, urlMap) => {
   let updatedHtml = html;
-  localUrls.forEach((localUrl, index) => {
-    updatedHtml = updatedHtml.replace(localUrl, uploadedUrls[index]);
-  });
+  for (const [localUrl, cloudUrl] of Object.entries(urlMap)) {
+    updatedHtml = updatedHtml.replaceAll(localUrl, cloudUrl);
+  }
   return updatedHtml;
 };
 
+/**
+ * Uploads all local images in the editor content to Cloudinary and replaces
+ * their URLs in the HTML.
+ *
+ * @param {Object} params
+ * @param {Editor} params.editor - The Tiptap editor instance.
+ * @param {Array<Object>} params.imageFiles - An array of objects with
+ *   `preview` and `file` properties, where `preview` is the local URL of the
+ *   image in the editor content and `file` is the image file itself.
+ * @returns {Promise<string>} The HTML with all local image URLs replaced with
+ *   Cloudinary URLs.
+ */
 export const uploadBlog = async ({ editor, imageFiles }) => {
   const html = editor.getHTML();
   const localUrls = extractImageUrlsFromHTML(html);
-  const uploadedImageUrls = [];
 
-  console.log("📸 Local image URLs:\n", localUrls);
+  imageFiles = imageFiles.filter((item) => localUrls.includes(item.preview));
+  const uploadedImageMap = {};
+
+  console.log("Local image URLs:", localUrls);
 
   for (let local of localUrls) {
     const matched = imageFiles.find((item) => item.preview === local);
     if (matched) {
       const uploadedUrl = await uploadImageToCloudinary(matched.file);
-      uploadedImageUrls.push(uploadedUrl);
-    } else {
-      uploadedImageUrls.push(local); // keep remote URLs as is
+      uploadedImageMap[local] = uploadedUrl;
     }
   }
 
-  const finalHTML = replaceImageUrlsInHTML(html, localUrls, uploadedImageUrls);
-  console.log("✅ Final HTML with Cloudinary URLs:\n", finalHTML);
+  const finalHTML = replaceImageUrlsInHTMLWithMap(html, uploadedImageMap);
+  console.log("Final HTML with Cloudinary URLs:", finalHTML);
+  return finalHTML;
 };
